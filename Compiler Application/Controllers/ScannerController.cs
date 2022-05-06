@@ -22,16 +22,10 @@ namespace Compiler_Application.Controllers
                 if (ws.Cells[1, j].Value2 != null)
                 {
                     string s = ws.Cells[1, j].Value2 + "";
-                    Console.WriteLine(s + " : " + j);
                     Ncolumn.Add(s , j);
                 }
-                else
-                {
-                    Console.WriteLine(j);
-                    break;
-                }
+                else break;
             }
-            
         }
 
         public int State(int current_state=0,string ch="H")
@@ -45,7 +39,7 @@ namespace Compiler_Application.Controllers
         }
 
 
-        public bool isValidToken(String code= "Rational")
+        public bool isValidToken(String code= "Rational n")
         {
             int i = 0;
             int current_state = 0;
@@ -57,7 +51,7 @@ namespace Compiler_Application.Controllers
                 Console.WriteLine(current_state + " " + i);
                 int newstate = State(current_state, ch);
                 i++;
-                if (i < code.Length)
+                if (i < code.Length && code[i]!=' ')
                 {
                     ch = code[i] + "";
                 }
