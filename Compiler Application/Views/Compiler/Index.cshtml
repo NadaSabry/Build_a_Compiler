@@ -1,0 +1,174 @@
+﻿@{
+}
+
+<div style="position: fixed; top:1%; right:1%; z-index: 999;">
+    <div class="d-flex my-3">
+        <input class="form-control" placeholder="Search..." id="editor_search"/>
+        <button class="btn btn-info ms-2" onclick="search()">Search</button>
+    </div>
+</div>
+
+<div class="container">
+    <h1>Compiler</h1>
+    <div class="d-flex">
+        <button class="btn btn-primary">Scanner</button>
+        <button class="btn btn-danger mx-2">Parser</button>
+        <div>
+            <input class="form-control" type="file" id="formFile">
+        </div>
+    </div>
+    <div class="d-flex my-3">
+        <button class="btn btn-success" onclick="addComment()">Comment Selected Code</button>
+        <button class="btn btn-warning mx-2" onclick="deleteComment()">Uncomment selected Code</button>
+    </div>
+    <div class="row">
+        <div class="col-1 p-3" style="background-color: rgb(235, 235, 235); font-size: 13.4px;" id="editor_lines">
+            <div style="height:21px;">1</div>
+        </div>
+        <div class="col-5 form-floating">
+            <div class="form-control p-3 h-100" contenteditable="true" style="overflow:scroll; white-space: nowrap;" id="editor"></div>
+        </div>
+        <div class="col-6 form-floating">
+            <textarea class="form-control" disabled placeholder="Output" id="floatingTextarea" style="min-height: 500px"></textarea>
+            <label class="ms-2" for="floatingTextarea">Output</label>
+        </div>
+    </div>
+</div>
+
+<script>
+        var editor = document.querySelector("#editor");
+        var lineEditor = document.querySelector("#editor_lines");
+        var searchEditor = document.querySelector("#editor_search");
+
+        editor.addEventListener("keyup", () => {
+            const code = editor.innerText;
+            //console.log(code);
+
+            // Make Span
+            const words = code.split('\n\n').join(',').split(' ').join(',').split(',');
+            //console.log(words);
+
+            // Lines
+            const numberOfLines = editor.childNodes.length;
+            lineEditor.innerHTML = "";
+            for (var i = 1; i <= numberOfLines + 1; i++)
+            {
+                lineEditor.innerHTML += "<div style='height:20px;'>" + i + "</div>";
+            }
+        })
+
+        function addComment()
+        {
+            var selection = document.getSelection();
+            if (selection)
+            {
+                var baseNode = selection.baseNode;
+                var baseValue = baseNode.nodeValue;
+                var extentNode = selection.extentNode;
+                var extentValue = extentNode.nodeValue;
+                var firstOffset = selection.baseOffset;
+                var lastOffset = selection.extentOffset;
+
+                if (baseNode == extentNode)
+                {
+                    if (lastOffset < firstOffset)
+                    {
+                        var temp = lastOffset;
+                        lastOffset = firstOffset;
+                        firstOffset = temp;
+                    }
+                    baseNode.nodeValue = baseValue.slice(0, firstOffset) + "</" + baseValue.slice(firstOffset, lastOffset) + "/>" + baseValue.slice(lastOffset, baseValue.length+1);
+                }
+                else
+                {
+                    var indexOfFirstElement = baseNode.compareDocumentPosition(extentNode);
+                    var indexOfLastElement = extentNode.compareDocumentPosition(baseNode);
+                    var isReversed = false;
+                    if (indexOfLastElement > indexOfFirstElement)
+                    {
+                        isReversed = true;
+                    }
+
+                    baseNode.nodeValue = baseValue.slice(0, firstOffset) +
+                    ((isReversed) ? "/>" : "</") + baseValue.slice(firstOffset, baseValue.length);
+                    extentNode.nodeValue = extentValue.slice(0, lastOffset) + 
+                    ((isReversed) ? "</" : "/>") + extentValue.slice(lastOffset, extentValue.length);
+                }
+            }
+        }
+
+        function deleteComment()
+        {
+            var selection = document.getSelection();
+            if (selection)
+            {
+                var baseNode = selection.baseNode;
+                var baseValue = baseNode.nodeValue;
+                var extentNode = selection.extentNode;
+                var extentValue = extentNode.nodeValue;
+                var firstOffset = selection.baseOffset;
+                var lastOffset = selection.extentOffset;
+
+                if (baseNode == extentNode)
+                {
+                    if (lastOffset < firstOffset)
+                    {
+                        var temp = lastOffset;
+                        lastOffset = firstOffset;
+                        firstOffset = temp;
+                    }
+                    baseNode.nodeValue = baseValue.slice(0, firstOffset) +
+                    baseValue.slice(firstOffset, lastOffset).replace("</", "").replace("/>", "") +
+                    baseValue.slice(lastOffset, baseValue.length + 1);
+                }
+                else
+                {
+                    var indexOfFirstElement = baseNode.compareDocumentPosition(extentNode);
+                    var indexOfLastElement = extentNode.compareDocumentPosition(baseNode);
+                    var isReversed = false;
+                    if (indexOfLastElement > indexOfFirstElement)
+                    {
+                        isReversed = true;
+                    }
+
+                    if (isReversed)
+                    {
+                        baseNode.nodeValue = baseValue.replace("/>", "");
+                        extentNode.nodeValue = extentValue.replace("</", "");
+                    }
+                    else
+                    {
+                        baseNode.nodeValue = baseValue.replace("</", "");
+                        extentNode.nodeValue = extentValue.replace("/>", "");
+                    }
+                }
+            }
+        }
+
+        function search()
+        {
+            var search = searchEditor.value;
+
+            if (search == "") return;
+
+            if (editor.childNodes.length > 0)
+            {
+                if (editor.childNodes[0].nodeValue.includes(search))
+                {
+                    
+                    editor.scrollIntoView();
+                    return;
+                }
+            }
+            for (var i = 1; i < editor.childNodes.length; i++)
+            {
+                var node = editor.childNodes[i];
+                
+                if (node && node.innerText.includes(search))
+                {
+                    node.scrollIntoView();
+                    break;
+                }
+            }
+        }
+</script>
