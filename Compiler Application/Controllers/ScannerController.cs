@@ -7,8 +7,11 @@ namespace Compiler_Application.Controllers
     public class ScannerController : Controller
     {
         public Dictionary<string, int> Ncolumn = new Dictionary<string, int>();
-        string TokenType = "";
+        string TokenType = "invalid token";
         string path = "";
+        int indx = 0;
+        int line = 1;
+        string[] ans=new string[1000];
         _Application excel = new _Excel.Application();
         Workbook wb;
         Worksheet ws;
@@ -52,32 +55,34 @@ namespace Compiler_Application.Controllers
 
         public bool isValidToken(String token= "")
         {
+            //Console.WriteLine("token = " + token + ";");
             int i = 0, error =-1,current_state = 0;
             string ch = token[i] + "";
-            while (i < token.Length && State(current_state, ch) != error)
+            while (i < token.Length && current_state != error)
             {
                 int newstate = State(current_state, ch);
                 //Console.WriteLine(ch + " " + current_state + " " + newstate);
                 current_state = newstate;
-                i++; 
-                if(i<token.Length) 
+                i++;
+                if (i < token.Length)
                     ch = token[i] + "";
             }
-            if (State(current_state, "Status")== 1)return true;
+            //Console.WriteLine("current_state = " + current_state);
+            if (current_state != error && State(current_state, "Status")== 1) return true;
             if (IsIdentifier(token)) return true;
             return false;
         }
-      // na</m,mbox,zmx,/>
+      
         
         public bool IsDelimiter(char c)
         {
-            if (c == ' ' || c == ';') return true;
+            if (c == ' ' || c == ';'|| c=='\n') return true;
             return false;
         }
         public bool IsIdentifier(string token)
         {
-            int j = 0, newState=0,current_state = 0; 
-            while(j < token.Length)
+            int j = 0, newState=0,current_state = 0,error=-1; 
+            while(j < token.Length && current_state != error)
             {
                 if ((token[j] >= 'a' && token[j] <= 'z') || (token[j] >= 'A' && token[j] <= 'Z')||token [j]=='_') //letter
                     newState = State(current_state, "letter");
@@ -87,40 +92,52 @@ namespace Compiler_Application.Controllers
                 current_state = newState; 
                 j++;
             }
+            if (current_state == -1) return false;
             newState = State(current_state, "other");
             if (State(newState, "Status")==1) return true;
             return false;
         }
 
-        public void Token(String code = "Rational If ^ nada Else When")
+        public void Token(String code = "@ Type Person { \n Rational G ( ) { \n")
         {
             int i = 0;
             while (i < code.Length)
             {
-                string token = "";
+                string token = ""; TokenType= "invalid token";
                 while (i < code.Length && !IsDelimiter(code[i]))
                 {
-                    token += code[i];
-                    i++;
+                    if (i + 2 < code.Length && code[i] == '*' && code[i + 1] == '*' && code[i + 2] == '*')
+                    {
+                        while (i < code.Length && code[i] != '\n' && code[i] != ';' ){token += code[i]; if (code[i] == '\n' || code[i] == ';') line++; i++;}
+                        TokenType = "single line comment";
+                    }
+                    else if (i + 1 < code.Length && code[i] == '<' && code[i+1] == '/' )
+                    {
+                        while (i + 1 < code.Length && (code[i] != '/' || code[i + 1] != '>' )) {token += code[i]; if (code[i] == '\n' || code[i] == ';') line++; i++; }
+                        if (i + 1 < code.Length)TokenType = "multiline comment";
+                    }
+                    else
+                    {
+                        token += code[i];
+                        //if (code[i] == '\n' || code[i] == ';') line++;
+                        i++;
+                    }
                 }
-               // Console.WriteLine("token = " + token); //+" valid ? " + isValidToken(token));
+                if (code[i] == '\n' || code[i] == ';') line++;
+                // Console.WriteLine("token = " + token); //+" valid ? " + isValidToken(token));
                 if (token != "")
                 {
-                    if (!isValidToken(token)) Console.WriteLine(token + " : invalid token ");
-                    else  Console.WriteLine(token + " : Token Type : " + TokenType);
-                    /* if (IsIdentifier(token))
-                     {
-                         Console.WriteLine(token + " : Token Type : " + TokenType);
-                     }
-                     else
-                     {
-                         Console.WriteLine(token + " : invalid token ");
-                     }
-                 }
-                 else
-                     Console.WriteLine(token + " : Token Type : " + TokenType);
-                    */
-
+                    string output;
+                    if (TokenType != "invalid token")
+                        output = "Line : " + line + " Token Text: " + token + "\tToken Type: " + TokenType;
+                    else
+                    {
+                        isValidToken(token);
+                        output = "Line : " + line + " Token Text: " + token + "  \tToken Type: " + TokenType;
+                        //Console.WriteLine(token + " : invalid token ");
+                    }
+                    Console.WriteLine(output);
+                    ans[indx] = output; indx++;
                 }
                 i++;
             }
