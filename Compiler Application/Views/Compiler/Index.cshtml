@@ -36,6 +36,9 @@
 </div>
 
 <script>
+
+    
+
         var editor = document.querySelector("#editor");
         var lineEditor = document.querySelector("#editor_lines");
         var searchEditor = document.querySelector("#editor_search");
@@ -171,4 +174,18 @@
                 }
             }
         }
+</script>
+
+<script>
+    var editor = document.querySelector("#editor");
+    var outputEditor = document.querySelector("#editorOutput");
+
+    function scanner()
+    {
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("POST", "ScannerTest/getText", false);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttp.send("code="+editor.innerText);
+        outputEditor.innerHTML = xhttp.responseText;
+    }
 </script>

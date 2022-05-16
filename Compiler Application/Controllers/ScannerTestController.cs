@@ -73,24 +73,24 @@ namespace Compiler_Application.Controllers
             return false;
         }
 
-        public string ValidToken(string code,ref int i,ref int State)
+        public string ValidToken(string code, ref int i, ref int State)
         {
-            int newState = 0, other = -1 ;
+            int newState = 0, other = -1;
             string token1 = "";
-            while (i < code.Length && !IsAcceptedState(State) && State !=other )
+            while (i < code.Length && !IsAcceptedState(State) && State != other)
             {
                 newState = getState(State, code[i] + "");
                 State = newState;
                 //Console.WriteLine(code[i] + " : " + State);
-                if(!IsAcceptedState(State) && State != other)
+                if (!IsAcceptedState(State) && State != other)
                 {
                     token1 += code[i];
                 }
                 i++;
-            }i--;
+            } i--;
             return token1;
         }
-
+        // ; \n --> check
         public void Token(String code = "Type test{\nIpokf x=3.5; Ipok y = x + 5 ?; } ")
         {
             int i = 0 ;
@@ -103,7 +103,11 @@ namespace Compiler_Application.Controllers
                 int currentState = 0;
                 
                 token = ValidToken(code, ref i,ref currentState);
+
                 
+                
+                
+
                 if (token == "")
                 {
                     while (i < code.Length && code[i] != '\n' && code[i] != ' ' && code[i] != ';') { token += code[i]; i++; }
@@ -124,6 +128,19 @@ namespace Compiler_Application.Controllers
             }
             ans[0] = NOofErrors+"";
             Console.WriteLine("Total NO of errors: " + ans[0]);
+        }
+
+        [HttpPost]
+        public String getText(string code)
+        {
+            Token(code);
+            String Display="";
+            for (int i = 1; i < indx; i++)
+            {
+                Display += ans[i]+"<br />";
+            }
+            Display += "Total NO of errors: " + NOofErrors ;
+            return Display;
         }
     }
 }
