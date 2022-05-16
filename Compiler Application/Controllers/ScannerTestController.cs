@@ -10,14 +10,14 @@ namespace Compiler_Application.Controllers
         public Dictionary<string, int> Ncolumn = new Dictionary<string, int>();
         string TokenType = "invalid token";
         string path = "";
-        int indx = 0;
-        int line = 1;
+        int indx = 1;
+        int line = 1,NOofErrors=0;
         string[] ans = new string[1000];
         _Application excel = new _Excel.Application();
         Workbook wb;
         Worksheet ws;
 
-        public ScannerTestController(string path = "E:\\level-3\\level3_T2\\compiler\\Compiler-Project\\Compiler Application\\Data\\scanner2.xlsx", int sheet = 1)
+        public ScannerTestController(string path = "E:\\level-3\\level3_T2\\compiler\\Compiler-Project\\Compiler Application\\Data\\scanner4.xlsx", int sheet = 1)
         {
             this.path = path;
             wb = excel.Workbooks.Open(path);
@@ -40,7 +40,7 @@ namespace Compiler_Application.Controllers
         {
             int j = Ncolumn["Status"], i = current_state + 2;
             string state = ws.Cells[i, j].Value2 + "";
-            if (state != "0")
+            if (state != "0"&& state!= "Status")
             {
                 TokenType = state;
                 return true;
@@ -58,37 +58,6 @@ namespace Compiler_Application.Controllers
             if (ws.Cells[i, j].Value2 != null) ans = (int)ws.Cells[i, j].Value2;
             return ans;
         }
-
-        public bool isLetter(char c)
-        {
-            if((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')return true;
-            return false;
-        }
-        public bool isDigit(char c)
-        {
-            if (c >= '0' && c <= '9')return true;
-            return false;
-        }
-
-
-        public bool IsIdentifier(string token)
-        {
-            int j = 0, newState = 0, current_state = 0, error = -1;
-            while (j < token.Length && current_state != error)
-            {
-                if (isLetter(token[j]))
-                    newState = getState(current_state, "letter");
-                else if (isDigit(token[j]))
-                    newState = getState(current_state, "digit");
-                else return false;
-                current_state = newState;
-                j++;
-            }
-            if (current_state == -1) return false;
-            newState = getState(current_state, "other");
-            if (IsAcceptedState(newState)) return true;
-            return false;
-        }
         public bool isLineDelimiter(char c)
         {
             if(c == '\n' || c == ';')
@@ -104,23 +73,25 @@ namespace Compiler_Application.Controllers
             return false;
         }
 
-        public string ValidToken(string code,ref int i,ref int currentState)
+        public string ValidToken(string code,ref int i,ref int State)
         {
             int newState = 0, other = -1 ;
             string token1 = "";
-            while (i < code.Length)
+            while (i < code.Length && !IsAcceptedState(State) && State !=other )
             {
-                newState = getState(currentState, code[i] + "");
-                if (newState == other) break;
-                token1 += code[i];
-                currentState = newState;
-                //Console.WriteLine(code[i] + " c " + currentState);
+                newState = getState(State, code[i] + "");
+                State = newState;
+                //Console.WriteLine(code[i] + " : " + State);
+                if(!IsAcceptedState(State) && State != other)
+                {
+                    token1 += code[i];
+                }
                 i++;
-            }
+            }i--;
             return token1;
         }
 
-        public void Token(String code = " @ Type Person{\nRational G() {;int frt = 5; *** sum to number;")
+        public void Token(String code = "Type test{\nIpokf x=3.5; Ipok y = x + 5 ?; } ")
         {
             int i = 0 ;
             while (i < code.Length)
@@ -128,40 +99,31 @@ namespace Compiler_Application.Controllers
                 while (i < code.Length && (isLineDelimiter(code[i]) || isWordDelimiter(code[i]))) i++;
                 if (i >= code.Length) break;
 
-                string output = "invalid", token1 = "", token2 = "";
-                int j = i, currentState = 0;
-                //Console.WriteLine(i + " : " + j);
-                token1 = ValidToken(code, ref i,ref currentState);
-
-                while (j < code.Length && (isLetter(code[j]) || isDigit(code[j]))) { token2 += code[j]; j++; }
-
-                //Console.WriteLine(token1 + " " + token2 + ":");
-                //Console.WriteLine("i = " + i +"state = " + currentState);
+                string output = "invalid", token = "";
+                int currentState = 0;
                 
-                // it is not read the character not in language like this  ? ( ) 
-                if (token1 == "" && token2 == "")
+                token = ValidToken(code, ref i,ref currentState);
+                
+                if (token == "")
                 {
-                     output = "Line : " + line + " Error in Token Text: " + code[i] ;
-                     i++;
+                    while (i < code.Length && code[i] != '\n' && code[i] != ' ' && code[i] != ';') { token += code[i]; i++; }
+                    output = "Line : " + line + " Error in Token Text: " + token;
+                    NOofErrors++;
                 }
-                else if (token1.Length >= token2.Length && IsAcceptedState(currentState))
-                {
-                     output = "Line : " + line + " Token Text: " + token1 + "\tToken Type: " + TokenType;
-                }
-                else if(token1.Length > token2.Length)
-                {
-                    output = "Line : " + line + " Error in Token Text: " + token1;
-                }
+                else if (IsAcceptedState(currentState))
+                    output = "Line : " + line + " Token Text: " + token + "  Token Type: " + TokenType;
                 else
                 {
-                    //Console.WriteLine(token2 );
-                    if (IsIdentifier(token2)) output = "Line : " + line + "\tToken Text: " + token2 + "  Token Type: " + TokenType;
-                    else output = "Line : " + line + " Error in Token Text: " + token2 ;
-                    if (j >= i) i = j;
+                    output = "Line : " + line + " Error in Token Text: " + token;
+                    NOofErrors++;
                 }
-                //Console.WriteLine(token1 + " " + token2 + ":");
+                ans[indx] = output;
+                indx++;
+
                 Console.WriteLine(output);
             }
+            ans[0] = NOofErrors+"";
+            Console.WriteLine("Total NO of errors: " + ans[0]);
         }
     }
 }
