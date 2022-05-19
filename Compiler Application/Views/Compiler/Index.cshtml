@@ -11,7 +11,7 @@
 <div class="container">
     <h1>Compiler</h1>
     <div class="d-flex">
-        <button class="btn btn-primary">Scanner</button>
+        <button class="btn btn-primary" onclick="scanner()">Scanner</button>
         <button class="btn btn-danger mx-2">Parser</button>
         <div>
             <input class="form-control" type="file" id="formFile">
@@ -26,11 +26,10 @@
             <div style="height:21px;">1</div>
         </div>
         <div class="col-5 form-floating">
-            <div class="form-control p-3 h-100" contenteditable="true" style="overflow:scroll; white-space: nowrap;" id="editor"></div>
+            <div class="form-control p-3 h-100" contenteditable="true" style="overflow:scroll; white-space: nowrap; min-height: 500px;" id="editor"></div>
         </div>
         <div class="col-6 form-floating">
-            <textarea class="form-control" disabled placeholder="Output" id="floatingTextarea" style="min-height: 500px"></textarea>
-            <label class="ms-2" for="floatingTextarea">Output</label>
+            <div class="form-control p-3 h-100" contenteditable="false" id="editorOutput" style="min-height: 500px;"></div>
         </div>
     </div>
 </div>
@@ -183,9 +182,11 @@
     function scanner()
     {
         var xhttp = new XMLHttpRequest();
-        xhttp.open("POST", "ScannerTest/getText", false);
+        xhttp.onload = function() {
+            outputEditor.innerHTML = this.responseText.toString();
+        }
+        xhttp.open("POST", "ScannerTest/getText", true);
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xhttp.send("code="+editor.innerText);
-        outputEditor.innerHTML = xhttp.responseText;
     }
 </script>

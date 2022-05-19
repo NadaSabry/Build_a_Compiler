@@ -12,12 +12,12 @@ namespace Compiler_Application.Controllers
         string path = "";
         int indx = 1;
         int line = 1,NOofErrors=0;
-        string[] ans = new string[1000];
+        string[] ans = new string[10000];
         _Application excel = new _Excel.Application();
         Workbook wb;
         Worksheet ws;
 
-        public ScannerTestController(string path = "E:\\level-3\\level3_T2\\compiler\\Compiler-Project\\Compiler Application\\Data\\scanner4.xlsx", int sheet = 1)
+        public ScannerTestController(string path = "D:\\.Net Projects\\Compiler Project\\Build_a_Compiler\\Compiler Application\\Data\\scanner4.xlsx", int sheet = 1)
         {
             this.path = path;
             wb = excel.Workbooks.Open(path);
@@ -133,13 +133,19 @@ namespace Compiler_Application.Controllers
         [HttpPost]
         public String getText(string code)
         {
+            if (code[code.Length - 1] != ' ')
+                code += " ";
+
             Token(code);
             String Display="";
             for (int i = 1; i < indx; i++)
             {
                 Display += ans[i]+"<br />";
             }
-            Display += "Total NO of errors: " + NOofErrors ;
+            Display += "Total NO of errors: " + NOofErrors;
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine(Display);
             return Display;
         }
     }
