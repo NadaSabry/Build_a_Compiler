@@ -62,7 +62,8 @@ namespace Compiler_Application.Controllers
         {
             if(c == '\n' || c == ';')
             {
-                line++;
+                if (c == '\n')
+                    line++;
                 return true;
             }
             return false;
@@ -79,6 +80,7 @@ namespace Compiler_Application.Controllers
             string token1 = "";
             while (i < code.Length && !IsAcceptedState(State) && State != other)
             {
+                isLineDelimiter(code[i]);
                 newState = getState(State, code[i] + "");
                 State = newState;
                 //Console.WriteLine(code[i] + " : " + State);
@@ -91,7 +93,7 @@ namespace Compiler_Application.Controllers
             return token1;
         }
         // ; \n --> check
-        public void Token(String code = "Type test{\nIpokf x=3.5; Ipok y = x + 5 ?; } ")
+        public void Token(String code = "Type test{   Ipokf x=3.5; Ipok y = x + 5 ?; } ")
         {
             int i = 0 ;
             while (i < code.Length)
@@ -131,13 +133,16 @@ namespace Compiler_Application.Controllers
         }
 
         [HttpPost]
-        public String getText(string code)
+        public String getText(String code)
         {
+            String Display="";
+            if (code == null || code == "")
+                return Display;
+
             if (code[code.Length - 1] != ' ')
                 code += " ";
 
             Token(code);
-            String Display="";
             for (int i = 1; i < indx; i++)
             {
                 Display += ans[i]+"<br />";
